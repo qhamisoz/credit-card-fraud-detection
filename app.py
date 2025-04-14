@@ -27,7 +27,8 @@ db = firebase.database()
 
 try:
     # check if the key exists in session state
-    _ = st.session_state.keep_graphics
+  if 'keep_graphics' not in st.session_state:
+      st.session_state.keep_graphics = False
 except AttributeError:
     # otherwise set it to false
     st.session_state.keep_graphics = False
@@ -37,6 +38,10 @@ if 'selected_option' not in st.session_state:
 
 if 'tier_option' not in st.session_state:
     st.session_state.tier_option = 'S'
+    
+if 'tier_option_active' not in st.session_state:
+    st.session_state.tier_option_active = 'N'
+    
 st.markdown("""
 <style>
 .big-font {
@@ -69,52 +74,44 @@ password = st.sidebar.text_input('Please enter your password', type="password")
   
 if choice == 'Sign up': 
     st.session_state.selected_option = 'B'
-    
-    if choice == 'Sign up' and st.session_state.selected_option == "B":
-        st.header(":blue[Create Your Secure Account] :closed_lock_with_key:", divider='gray')
-        st.markdown("""
-        <style>
-        .big-font {
-            font-size:18px !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        st.markdown('<p class="big-font">Join thousands of businesses protecting their financial transactions with our advanced fraud detection platform. Setup takes just minutes, and you will gain immediate access to our comprehensive fraud detection tools.</p>', unsafe_allow_html=True)
-        st.markdown('<h2 class="big-font">Form Fields </h>', unsafe_allow_html=True)
-        st.markdown(":email: Email Address")
-        st.markdown(":lock: Password")
-        st.markdown(":writing_hand: Fullname")
-        st.markdown(":briefcase: Tier Subscription")
-        st.markdown('<h2 class="big-font">Compliance Text </h>', unsafe_allow_html=True)
-        st.markdown('<p class="big-font">By creating an account, you agree to our Terms of Service and Privacy Policy. Our platform is full compliant with PCI DSS, POPIA, and FICA.</p>', unsafe_allow_html=True)
-        
+    st.session_state.hide = False
+    st.session_state.keep_graphics = False
+    #st.session_state.tier_option_active = False
+    re_password = st.sidebar.text_input('Please re-enter your password', type="password")
     handle = st.sidebar.text_input('Please enter your full name', value='')
     # tier selection
     tier = st.sidebar.selectbox('Tier Subscription', ['','Enterprise Tier', 'Mid-Market Tier', 'Growth Tier'])
     
-    if choice == 'Sign up' and st.session_state.selected_option == 'B' and tier == 'Enterprise Tier':
-    
-        #st.session_state.selected_option = 'C'
-        #if st.selected_option == "C":
-        st.markdown(':briefcase: Enterprise Tier (Big 5 Banks)', unsafe_allow_html=True)
-    #if tier == 'Mid-Market Tier':
-        #st.session_state.tier_option = 'B'
-        #if st.session_state.tier_option == "C":
-            #st.markdown(':briefcase: Mid-Market Tier (Regional Banks and Digital Banks)', unsafe_allow_html=True)
-    #if tier == 'Growth Tier':
-        #st.session_state.tier_option = 'C'
-        #if st.session_state.tier_option == "C":
-            #st.markdown(':briefcase: Growth Tier (Fintechs and Payment Providers)', unsafe_allow_html=True)
-        
+    if tier == 'Enterprise Tier' and handle != '':
+        st.cache_resource.clear()
+        st.session_state.tier_option = 'A'
+        st.session_state.tier_option_active = 'Y'
+        if st.session_state.tier_option == "A":
+            st.markdown(':briefcase: Enterprise Tier (Big 5 Banks)', unsafe_allow_html=True)
+    elif tier == 'Mid-Market Tier' :
+        st.session_state.tier_option = 'B'
+        if st.session_state.tier_option == "B":
+            st.markdown(':briefcase: Mid-Market Tier (Regional Banks and Digital Banks)', unsafe_allow_html=True)
+    elif tier == 'Growth Tier':
+        st.session_state.tier_option = 'C'
+        if st.session_state.tier_option == "C":
+            st.markdown(':briefcase: Growth Tier (Fintechs and Payment Providers)', unsafe_allow_html=True)
+               
     submit = st.sidebar.button('Create my account')
     
     if submit:
          if len(email) == 0:
              st.error("Email Address is required field.")
-         elif len(password) == 6:
+         elif len(password) == 0:
              st.error("Password is required field.")
          elif len(password) < 6:
              st.error("Password must 6 or more characters.")
+         elif len(re_password) == 0:
+             st.error("Password confirmation is required field.")
+         elif len(re_password) < 6:
+             st.error("Password confirmation must 6 or more characters.")
+         elif password != re_password:
+             st.error("Password and Re-Entered Password do not match.")
          elif len(handle) == 0:
              st.error("Full Name is required field.")
          elif len(tier) == 0:
@@ -132,10 +129,8 @@ if choice == 'Sign up':
                  st.info('Access Credit Card Fraud Detection Datshboard via Login/Signup drop down selection by selecting Login option')
              except:
                  st.error('Account already exists!')
-if choice == 'Login':
-    st.session_state.selected_option = 'A'
-    if st.session_state.selected_option == "A":
-        st.header("Detecting Your Transactions with :blue[Advanced Fraud Detection] :male-detective:", divider='gray')
+    if choice == 'Sign up' and st.session_state.selected_option == 'B' and st.session_state.tier_option_active == 'N':
+        st.header(":blue[Create Your Secure Account] :closed_lock_with_key:", divider='gray')
         st.markdown("""
         <style>
         .big-font {
@@ -143,25 +138,17 @@ if choice == 'Login':
         }
         </style>
         """, unsafe_allow_html=True)
-        st.markdown('<p class="big-font">Learn from new data and AI-powered analytics to safeguard your financial operations.</p>', unsafe_allow_html=True)
-        st.markdown('<h2 class="big-font">Main Features </h>', unsafe_allow_html=True)
-        st.markdown('<h2 class="big-font">Intelligent Protection: </h>', unsafe_allow_html=True)
-        st.markdown('<p class="big-font">Our system employs cutting-edge machine learning algorithms to identify suspicious patterns and anomalies in transaction data, before it impacts your business. </p>', unsafe_allow_html=True)
-        st.markdown('<h2 class="big-font">Comprehensive Dashboard: </h>', unsafe_allow_html=True)
-        st.markdown('<p class="big-font">Monitor transaction patterns, fraud attempts, and security metrics through an intuitive visual interface designed for both technical and non-technical users. </p>', unsafe_allow_html=True)
-    
-    login = st.sidebar.button('Login')
-    if login or st.session_state.keep_graphics:
-        if len(email) == 0:
-            st.error("To Login: Valid Registered Email Address is required.")            
-        elif len(password) == 0:
-            st.error("To Login: Valid Registered Password is required.")
-        else:
-            try:
-                user = auth.sign_in_with_email_and_password(email, password)
-                
-                st.session_state.keep_graphics = True 
-                    
+        st.markdown('<p class="big-font">Join thousands of businesses protecting their financial transactions with our advanced fraud detection platform. Setup takes just minutes, and you will gain immediate access to our comprehensive fraud detection tools.</p>', unsafe_allow_html=True)
+        st.markdown('<h2 class="big-font">Form Fields </h>', unsafe_allow_html=True)
+        st.markdown(":email: Email Address")
+        st.markdown(":lock: Password")
+        st.markdown(":writing_hand: Fullname")
+        st.markdown(":briefcase: Tier Subscription")
+        st.markdown('<h2 class="big-font">Compliance Text </h>', unsafe_allow_html=True)
+        st.markdown('<p class="big-font">By creating an account, you agree to our Terms of Service and Privacy Policy. Our platform is full compliant with PCI DSS, POPIA, and FICA.</p>', unsafe_allow_html=True)
+        
+if choice == 'Login':
+    if st.session_state.keep_graphics == True:
                 # reading csv
                 error_df = pd.read_csv('results_df.csv')
                 error_df.columns = ['Index', 'Target variable', 'Score']
@@ -218,7 +205,7 @@ if choice == 'Login':
                 metrics.loc[len(metrics.index)] = ['Number of good transactions classified as good', tn, '']
                 metrics.loc[len(metrics.index)] = ['Total number of transactions assessed', tp + fp + fn + tn, '']
                 st.dataframe(metrics.assign(hack="").set_index("hack"))
-             # default
+                # default
                 # `metrics_default` is a DataFrame that is being used to store and display the default
                 # metrics related to fraud detection. These default metrics are calculated based on
                 # the default classification results before any user input for cost adjustments. The
@@ -234,5 +221,44 @@ if choice == 'Login':
                 metrics_default.loc[len(metrics_default.index)] = ['Number of good transactions classified as good', tn_default, '']
                 metrics_default.loc[len(metrics_default.index)] = ['Total number of transactions assessed', tp_default + fp_default + fn_default + tn_default, '']
                 st.dataframe(metrics_default.assign(hack="").set_index("hack"))
+                
+    st.session_state.selected_option = 'A'
+    #st.session_state.access == False
+    if st.session_state.keep_graphics == True:
+        st.session_state.hide = True
+    else:
+        st.session_state.hide = False
+        
+    
+    login = st.sidebar.button('Login')
+    if login or st.session_state.keep_graphics:
+        if len(email) == 0:
+            st.error("To Login: Valid Registered Email Address is required.")            
+        elif len(password) == 0:
+            st.error("To Login: Valid Registered Password is required.")
+        else:
+            try:
+                user = auth.sign_in_with_email_and_password(email, password)
+                st.session_state.selected_option = '100'
+                st.session_state.keep_graphics = True                 
+                
             except:
                 st.error('Login failed. Only registered user profile can access the Credit Card Fraud Detection Dashboard!')
+
+    if choice == 'Login' and st.session_state.selected_option == "A" and st.session_state.hide == False:
+        st.header("Detecting Your Transactions with :blue[Advanced Fraud Detection] :male-detective:", divider='gray')
+        st.markdown("""
+        <style>
+        .big-font {
+            font-size:18px !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        st.markdown('<p class="big-font">Learn from new data and AI-powered analytics to safeguard your financial operations.</p>', unsafe_allow_html=True)
+        st.markdown('<h2 class="big-font">Main Features </h>', unsafe_allow_html=True)
+        st.markdown('<h2 class="big-font">Intelligent Protection: </h>', unsafe_allow_html=True)
+        st.markdown('<p class="big-font">Our system employs cutting-edge machine learning algorithms to identify suspicious patterns and anomalies in transaction data, before it impacts your business. </p>', unsafe_allow_html=True)
+        st.markdown('<h2 class="big-font">Comprehensive Dashboard: </h>', unsafe_allow_html=True)
+        st.markdown('<p class="big-font">Monitor transaction patterns, fraud attempts, and security metrics through an intuitive visual interface designed for both technical and non-technical users. </p>', unsafe_allow_html=True)
+            
+    
