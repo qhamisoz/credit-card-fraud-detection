@@ -5,6 +5,7 @@ import numpy as np
 from datetime import datetime
 import pyrebase
 from streamlit_tags import st_tags
+from email_validator import validate_email, EmailSyntaxError
 
 # configuration key
 firebaseConfig = {
@@ -25,6 +26,14 @@ auth = firebase.auth()
 # database
 db = firebase.database()
 
+def validate_email(email_address):
+    try:
+        email = validate_email(email_address)
+        return True, None
+    except EmailSyntaxError:
+        return False, "Invalid email format."    
+    except Exception as e:
+        return False, f"An error occurred: {e}"
 try:
     # check if the key exists in session state
   if 'keep_graphics' not in st.session_state:
@@ -82,52 +91,79 @@ if choice == 'Sign up':
     # tier selection
     tier = st.sidebar.selectbox('Tier Subscription', ['','Enterprise Tier', 'Mid-Market Tier', 'Growth Tier'])
     
-    if tier == 'Enterprise Tier' and handle != '':
+    if tier == 'Enterprise Tier':
         st.cache_resource.clear()
         st.session_state.tier_option = 'A'
         st.session_state.tier_option_active = 'Y'
         if st.session_state.tier_option == "A":
-            st.markdown(':briefcase: Enterprise Tier (Big 5 Banks)', unsafe_allow_html=True)
+            st.header(':briefcase: Enterprise Tier (Big 5 Banks) Subscription Model', divider='gray')
+            st.markdown(':white_check_mark: Monthly base fee: R850,000 to R1,200,000.')
+            st.markdown(':white_check_mark: Monthly volume of transactions: up to 15 million.')
+            st.markdown(':white_check_mark: Features: include a specialized support staff, unique models, and the entire ML suite.')
+            st.markdown(':white_check_mark: One-time implementation fee: R1,800,000–2,500,000.')
     elif tier == 'Mid-Market Tier' :
         st.session_state.tier_option = 'B'
         if st.session_state.tier_option == "B":
-            st.markdown(':briefcase: Mid-Market Tier (Regional Banks and Digital Banks)', unsafe_allow_html=True)
+            st.header(':briefcase: Mid-Market Tier (Regional Banks and Digital Banks) Subscription Model', divider='gray')
+            st.markdown(':white_check_mark: Monthly base fee: R300,000 to R550,000.')
+            st.markdown(':white_check_mark: Volume of transactions: up to 3 million per month.')
+            st.markdown(':white_check_mark: Features: include priority support and standard ML models.')
+            st.markdown(':white_check_mark: One-time implementation fee: R800,000–1,200,000.')
     elif tier == 'Growth Tier':
         st.session_state.tier_option = 'C'
         if st.session_state.tier_option == "C":
-            st.markdown(':briefcase: Growth Tier (Fintechs and Payment Providers)', unsafe_allow_html=True)
-               
+            #st.header(":blue[Create Your Secure Account] :closed_lock_with_key:", divider='gray')
+            st.header(':briefcase: Growth Tier (Fintechs and Payment Providers) Subscription Model', divider='gray')
+            st.markdown(':white_check_mark: Monthly base fee: R80,000 to R200,000.')
+            st.markdown(':white_check_mark: Volume of transactions: up to 750,000 per month.')
+            st.markdown(':white_check_mark: Features: include standard support and core detecting capabilities.')
+            st.markdown(':white_check_mark: One-time implementation fee: R250,000–R450,000.')
+    
     submit = st.sidebar.button('Create my account')
     
     if submit:
-         if len(email) == 0:
-             st.error("Email Address is required field.")
-         elif len(password) == 0:
-             st.error("Password is required field.")
-         elif len(password) < 6:
-             st.error("Password must 6 or more characters.")
-         elif len(re_password) == 0:
-             st.error("Password confirmation is required field.")
-         elif len(re_password) < 6:
-             st.error("Password confirmation must 6 or more characters.")
-         elif password != re_password:
-             st.error("Password and Re-Entered Password do not match.")
-         elif len(handle) == 0:
-             st.error("Full Name is required field.")
-         elif len(tier) == 0:
-             st.error("Please select Tier Subscription.")
-         else:
-             try:    
-                 user = auth.create_user_with_email_and_password(email, password)
-                 st.success('Account is created successfully!') 
-                 # sign in
-                 user = auth.sign_in_with_email_and_password(email, password)
-                 db.child(user['localId']).child("Fullname").set(handle)
-                 db.child(user['localId']).child("Tier Subscription").set(tier)
-                 db.child(user['localId']).child("ID").set(user['localId'])
-                 st.title('Welcome ' + handle)
-                 st.info('Access Credit Card Fraud Detection Datshboard via Login/Signup drop down selection by selecting Login option')
-             except:
+        #valid, message = validate_email(email)
+        #if valid == None:
+           # st.error(message)
+        #else:
+            #st.error(message)
+            
+        if len(email) == 0:
+            st.error("Email Address is required field.")
+            st.stop()
+        elif len(password) == 0:
+            st.error("Password is required field.")
+            st.stop()
+        elif len(password) < 6:
+            st.error("Password must 6 or more characters.")
+            st.stop()
+        elif len(re_password) == 0:
+            st.error("Password confirmation is required field.")
+            st.stop()
+        elif len(re_password) < 6:
+            st.error("Password confirmation must 6 or more characters.")
+            st.stop()
+        elif password != re_password:
+            st.error("Password and Re-Entered Password do not match.")
+            st.stop()
+        elif len(handle) == 0:
+            st.error("Full Name is required field.")
+            st.stop()
+        elif len(tier) == 0:
+            st.error("Please select Tier Subscription.")
+            st.stop()
+        else:
+            try:
+                user = auth.create_user_with_email_and_password(email, password)
+                st.success('Account is created successfully!') 
+                # sign in
+                user = auth.sign_in_with_email_and_password(email, password)
+                db.child(user['localId']).child("Fullname").set(handle)
+                db.child(user['localId']).child("Tier Subscription").set(tier)
+                db.child(user['localId']).child("ID").set(user['localId'])
+                st.header('Welcome ' + handle)
+                st.info('Access Credit Card Fraud Detection Datshboard via Login/Signup drop down selection by selecting Login option')
+            except:
                  st.error('Account already exists!')
     if choice == 'Sign up' and st.session_state.selected_option == 'B' and st.session_state.tier_option_active == 'N':
         st.header(":blue[Create Your Secure Account] :closed_lock_with_key:", divider='gray')
@@ -233,9 +269,11 @@ if choice == 'Login':
     login = st.sidebar.button('Login')
     if login or st.session_state.keep_graphics:
         if len(email) == 0:
-            st.error("To Login: Valid Registered Email Address is required.")            
+            st.error("To Login: Valid Registered Email Address is required.")
+            st.stop()            
         elif len(password) == 0:
             st.error("To Login: Valid Registered Password is required.")
+            st.stop()
         else:
             try:
                 user = auth.sign_in_with_email_and_password(email, password)
